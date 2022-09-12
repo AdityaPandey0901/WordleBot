@@ -91,18 +91,18 @@ class WordleSolver:
         
         return guess_word
     
-    def generate_frequency_wp(self):
+    def generate_bucket_wp(self):
 
-        #Generates a word based on frequency ranker
+        #Generates a word based on bucket ranker with penalty
         guess_word = ""
         max_score = 0
-        dist_list = self.measure_frequency()
+        dist_list = self.measure_distribution()
 
-        for word in self.word_list:
+        for i,word in enumerate(self.word_list):
             score = 0
             for j,letter in enumerate(word):
                 if(letter not in word[:j]):
-                    score = score + dist_list[letter]
+                    score = score + dist_list[j][letter]
             
             if(score>max_score):
                 max_score = score
