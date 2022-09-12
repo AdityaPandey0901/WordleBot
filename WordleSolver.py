@@ -20,9 +20,58 @@ class WordleSolver:
                     dict[letter] = 1
 
         return dist_list
+    
+    def measure_frequency(self):
+        letters = "".join(self.word_list)
+        dict_freq = {}
+
+        for i in range(60,91):
+            dict_freq[chr(i)] = 0
+
+        for i in letters:
+            dict_freq[i] = dict_freq[i] + 1
+
+        return dict_freq
 
     def generate_random(self):
         return random.choice(self.word_list)
+    
+    def generate_frequency(self):
+
+        #Generates a word based on frequency ranker
+        guess_word = ""
+        max_score = 0
+        dist_list = self.measure_frequency()
+
+        for word in self.word_list:
+            score = 0
+            for j,letter in enumerate(word):
+                score = score + dist_list[letter]
+            
+            if(score>max_score):
+                max_score = score
+                guess_word = word
+        
+        return guess_word
+
+    def generate_frequency_wp(self):
+
+        #Generates a word based on frequency ranker
+        guess_word = ""
+        max_score = 0
+        dist_list = self.measure_frequency()
+
+        for word in self.word_list:
+            score = 0
+            for j,letter in enumerate(word):
+                if(letter not in word[:j]):
+                    score = score + dist_list[letter]
+            
+            if(score>max_score):
+                max_score = score
+                guess_word = word
+        
+        return guess_word
     
     def generate_bucket(self):
 
@@ -41,7 +90,25 @@ class WordleSolver:
                 guess_word = word
         
         return guess_word
+    
+    def generate_frequency_wp(self):
 
+        #Generates a word based on frequency ranker
+        guess_word = ""
+        max_score = 0
+        dist_list = self.measure_frequency()
+
+        for word in self.word_list:
+            score = 0
+            for j,letter in enumerate(word):
+                if(letter not in word[:j]):
+                    score = score + dist_list[letter]
+            
+            if(score>max_score):
+                max_score = score
+                guess_word = word
+        
+        return guess_word
 
     def update(self, info=[]):
         new_word_list = []
@@ -75,4 +142,9 @@ class WordleSolver:
     def return_list(self):
         return self.word_list
 
+    def reset(self, file_loc="data/words.txt"):
+        with open(file_loc,'r') as f:
+            word_list = f.read().upper().split('\n')
 
+        word_list.sort()
+        self.word_list = word_list
