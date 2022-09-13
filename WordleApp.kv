@@ -1,0 +1,22 @@
+#:kivy 1.0.9
+
+<WordleApp>:    
+    name: 'home'
+    grid: grid 
+    FloatLayout:
+        BoxLayout:
+            orientation: "horizontal"
+            pos_hint: {"x": 0, "y": 0}
+            GridLayout:
+                id: grid
+                # rows: 6
+                cols: 5
+                padding: 10
+                spacing: 10
+                row_force_default: True
+                row_default_height: 40
+                Label:
+                    text: 'Your Tasks:'
+                    size_hint_x: None
+                    width: 200
+                    font_size: 24
