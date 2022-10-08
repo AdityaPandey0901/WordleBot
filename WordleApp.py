@@ -12,6 +12,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from matplotlib import pyplot as plt
+from kivy.uix.togglebutton import ToggleButton
 
 import Wordle_Classes as Wrdle
 from kivy.properties import ListProperty
@@ -46,7 +47,7 @@ class WordleApp(App):
 	GTrack=[]
 	total=0
 
-	winFlag=False
+	winFlag=True
 
 
 
@@ -54,20 +55,15 @@ class WordleApp(App):
 
 	def startAGame(self,x):
 		self.a.children[3].text="Round: "+str(self.total)+"\n"+'Started'
+		self.a.children[3].bold=True
 		self.guesses=[]
 		
-
-
 		self.winFlag=False
 		Grey=np.array([88,88,88,256])/256
 		#resets the board
 		self.grid.clear_widgets()
 		for i in range(30):
 			self.grid.add_widget(Button(text=' '))
-
-
-		
-
 
 
 		guesses=[]
@@ -77,12 +73,12 @@ class WordleApp(App):
 			self.Sim=Wrdle.WordleSim(first) #Starts with random word
 			self.Solver=Wrdle.WordleSolver()
 			self.used.append(first)
-			print(first)
+		else:
+			self.corpus=self.words_12k
 
 
 	def on_enter(self, value):
 		guess=self.input.text
-		print(guess)
 
 		if(len(guess)==5 and self.winFlag==False):
 			self.update(guess)
@@ -92,6 +88,8 @@ class WordleApp(App):
 		if(self.winFlag==False):
 			guess=self.Solver.generate_mixed_wp()
 			self.update(guess)
+		else:
+			self.startAGame(1)
 
 	def checkWin(self,State):
 		for each in State:
@@ -104,28 +102,48 @@ class WordleApp(App):
 		return True
 
 
+	def recAuto(self,x):
+
+		
+		if(self.Auto.state=='down'):
+
+			self.BotPlay()
+
+		else:
+
+			return False
+
+		
+
+
+
+	def AutoPlay(self,press):
+
+		event=Clock.schedule_interval(self.recAuto, 1)
+
+
+
 
 	def update(self,guess,x=0):
 
 		if(not self.winFlag):
-			print("guess: "+guess)
-			self.guesses.append(guess)
+			
+			self.guesses.append(guess.upper())
 			State=self.Sim.play(guess)[0]
 			self.Solver.update(State)    #Keep Solver up to date
 
-			print()
-			print(State)
+			
 
 			guess_no=len(self.guesses)
 			Elements=self.grid.children
-			print(self.guesses)
-
+			
 			#Colors
 			Grey=np.array([88,88,88,256])/256
 			Orange=(np.array([255,153,0,256])/256)
 			Green=(np.array([51,153,51,256])/256)
 
 
+			#Fills Grid Cells and Colors
 
 			for i in range(0,len(Elements)):
 
@@ -136,25 +154,38 @@ class WordleApp(App):
 					State=self.Sim.play(self.guesses[int(i/5)])[0]
 
 					if(State[i%5][1]==1):
-						Elements[29-i].background_normal=''
-						Elements[29-i].background_color=Orange
+						#Elements[29-i].background_normal=''
+						Elements[29-i].background_color=Orange/Grey
 
 
 					elif(State[i%5][1]==2):
-						Elements[29-i].background_normal=''
-						Elements[29-i].background_color=Green
+						#Elements[29-i].background_normal=''
+						Elements[29-i].background_color=Green/Grey
 					Elements[29-i].line_color= Grey
+
+
+			#Fill in recommended words
+			temp=self.Solver.return_list()
+
+			self.RecBox.text='\nSuggested Words:'
+
+			for i in range(0,min(len(temp),10)):
+				self.RecBox.text+='\n'+str(i+1)+': '+temp[i]
+
+
 
 			
 
+			
 
+			#Check for Win Condition and populate others
 			if(self.checkWin(State)):
 
-				self.a.children[3].text="Round: "+str(self.total)+"\n"+'Victory :)'
+				self.a.children[3].text="Round "+str(self.total)+"\n"+'Victory :)'
 				self.total+=1
 				self.GTrack.append(len(self.guesses))
-				self.a.children[1].text="Avg Guesses: \n"+str(np.round(np.mean(self.GTrack),decimals=2))
-				self.a.children[2].text="Success %:\n"+str(np.round(len(self.GTrack)*100/self.total))
+				self.a.children[1].text="Avg Guesses: "+str(np.round(np.mean(self.GTrack),decimals=2))
+				self.a.children[2].text="Success: "+str(np.round(len(self.GTrack)*100/self.total))+"%"
 				
 
 			elif(len(self.guesses)==6):
@@ -176,28 +207,39 @@ class WordleApp(App):
 		self.buttons=BoxLayout(orientation='vertical')
 		self.a=BoxLayout(orientation='vertical',size_hint=(0.15,1))
 		
-		self.a.add_widget(Label(text=' ',size_hint=(1,.15),pos_hint={'x':1,'y':1}))
-		self.a.add_widget(Label(text=' ',size_hint=(1,.15),pos_hint={'x':1,'y':.75}))
-		self.a.add_widget(Label(text=' ',size_hint=(1,.15),pos_hint={'x':1,'y':.5}))
-		self.a.add_widget(Label(text=' ',size_hint=(1,.55),pos_hint={'x':1,'y':1}))
+		self.a.add_widget(Label(text=' ',size_hint=(1,.15),pos_hint={'x':1,'y':1},halign="left"))
+		self.a.add_widget(Label(text=' ',size_hint=(1,.15),pos_hint={'x':1,'y':.75},halign="left"))
+		self.a.add_widget(Label(text=' ',size_hint=(1,.15),pos_hint={'x':1,'y':.75},halign="left"))
+		self.a.add_widget(Label(text=' ',size_hint=(1,.55),pos_hint={'x':1,'y':.5},halign="left"))
 
 
-		self.buttons.add_widget(Label(text='         ',size_hint=(.5, .17)))
-		self.buttons.add_widget(Button(text = "Start Game",on_press = self.startAGame,size_hint=(.5, .2),pos_hint={'x':.5,'y':.6}))
-		self.buttons.add_widget(Label(text='         ',size_hint=(.5, .17)))
-		self.buttons.add_widget(Button(text = "Use Bot Guess",on_press = self.BotPlay,size_hint=(.5, .2),pos_hint={'x':.5,'y':.6}))
-		self.buttons.add_widget(Label(text='',size_hint=(.5, .16)))
-		self.input=TextInput(text='Guess+Enter', multiline=False,size_hint=(.5, .2),pos_hint={'x':.5,'y':1})
+		self.buttons.add_widget(Label(text='         ',size_hint=(.5, .02)))
 		
+		self.buttons.add_widget(Label(text='         ',size_hint=(.5, .15)))
+		self.buttons.add_widget(Button(text = "Start Game",on_press = self.startAGame,size_hint=(.5, .2),pos_hint={'x':.5,'y':.6}))
+		self.buttons.add_widget(Label(text='         ',size_hint=(.5, .15)))
+		self.buttons.add_widget(Button(text = "Use Bot Guess",on_press = self.BotPlay,size_hint=(.5, .2),pos_hint={'x':.5,'y':.6}))
+		self.buttons.add_widget(Label(text='',size_hint=(.5, .15)))
+		self.Auto=ToggleButton(text='AutoPlay',size_hint=(.5,.2),pos_hint={"x":.5, "y":.6},on_press=self.AutoPlay)
+		self.buttons.add_widget(self.Auto)
+		self.buttons.add_widget(Label(text='',size_hint=(.5, .15)))
+		self.input=TextInput(text='Your Guess', multiline=False,size_hint=(.5, .2),pos_hint={'x':.5,'y':1})
+		
+		
+
 		self.input.bind(on_text_validate=self.on_enter)
 		self.buttons.add_widget(self.input)
-		self.buttons.add_widget(Label(text=' ',size_hint=(.5, .1)))
+		self.buttons.add_widget(Label(text=' ',size_hint=(.5, .8)))
+
+		#RecsBox
+
+		self.RecBox=Label(text='\nSuggested Words:',size_hint=(1,.55),pos_hint={'x':.25,'y':1}, underline=False,valign="top")
+
+		self.buttons.add_widget(self.RecBox)
 
 		b=BoxLayout(orientation='horizontal')
 		b.add_widget(Label(text=' ',size_hint=(.5,1)))
-		b.add_widget(Label(text=' '))
-		b.add_widget(Label(text=' '))
-		b.add_widget(Label(text=' '))
+		
 		self.buttons.add_widget(b)
 		self.buttons.add_widget(Label(text=' ',size_hint=(.5, .1)))
 
@@ -210,6 +252,10 @@ class WordleApp(App):
 		self.big.add_widget(Label(text=' ',size_hint=(0.05,1)))
 		self.big.add_widget(self.a)
 		self.buttons.add_widget(Label(text='               ',size_hint=(1,1.0)))
+		self.white=Button(text=' ',size_hint=(0.01,1), pos_hint={'x':1,'y':0})
+		self.white.background_normal=''
+		self.big.add_widget(Label(text=' ',size_hint=(0.5,1)))
+		self.big.add_widget(self.white)
 		self.big.add_widget(self.buttons)
 		self.big.add_widget(Label(text='               ',size_hint=(.2,1.0)))
 		self.big.outline_color=[1,0,0,1]
