@@ -2,7 +2,7 @@
 Creating multiple Models to solve wordles!  
 
 
-![Wordle_Run](https://user-images.githubusercontent.com/17527776/194702866-81253ee0-c58d-48e1-a108-c9c77889cd74.gif)
+![Wordle_Run](https://user-images.githubusercontent.com/17527776/194702866-81253ee0-c58d-48e1-a108-c9c77889cd74.gif = 500x500)
 
 
 
